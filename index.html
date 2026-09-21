@@ -187,25 +187,15 @@
     <section class="screen" id="screen-health">
       <div class="card">
         <h3>Автопубликация Threads</h3>
-        <div class="toprow" style="margin-bottom:10px">
+        <div class="toprow">
           <span><span class="dot" id="th-dot"></span><span id="th-status">—</span></span>
           <div class="toggle" id="th-toggle"><div class="knob"></div></div>
         </div>
-        <div class="stat-grid">
-          <div class="stat"><div class="n" id="th-exec">—</div><div class="l">запусков всего</div></div>
-          <div class="stat"><div class="n" id="th-err">—</div><div class="l">ошибок всего</div></div>
-        </div>
+        <div class="muted" id="th-next" style="margin-top:8px">Следующий запуск: —</div>
       </div>
       <div class="card">
         <h3>Автогенерация TG (Сценарий А)</h3>
-        <div class="stat-grid">
-          <div class="stat"><div class="n" id="tg-exec">—</div><div class="l">запусков всего</div></div>
-          <div class="stat"><div class="n" id="tg-err">—</div><div class="l">ошибок всего</div></div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>Debug (временно)</h3>
-        <div class="muted" style="word-break:break-all; white-space:pre-wrap;" id="debug-box">—</div>
+        <div class="muted" id="tg-next">Следующий запуск: —</div>
       </div>
     </section>
   </main>
@@ -322,16 +312,17 @@ async function loadHealth() {
   state = r;
   const th = r.threads_auto || {};
   const tga = r.tg_auto || {};
-  document.getElementById('th-exec').textContent = th.executions ?? '—';
-  document.getElementById('th-err').textContent = th.errors ?? '—';
-  document.getElementById('tg-exec').textContent = tga.executions ?? '—';
-  document.getElementById('tg-err').textContent = tga.errors ?? '—';
   const active = th.active === true || th.active === 'true';
   document.getElementById('th-dot').className = 'dot ' + (active ? 'on' : 'off');
   document.getElementById('th-status').textContent = active ? 'Активна' : 'Остановлена';
   document.getElementById('th-toggle').classList.toggle('on', active);
-  const dbox = document.getElementById('debug-box');
-  if (dbox) dbox.textContent = JSON.stringify({debug_th: r.debug_th, debug_tg: r.debug_tg}, null, 2);
+  function fmtNext(v) {
+    if (!v) return '—';
+    try { return new Date(v).toLocaleString('ru-RU', { timeZone: 'Europe/Kyiv', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); }
+    catch(e) { return v; }
+  }
+  document.getElementById('th-next').textContent = 'Следующий запуск: ' + fmtNext(th.next_run);
+  document.getElementById('tg-next').textContent = 'Следующий запуск: ' + fmtNext(tga.next_run);
 }
 
 document.getElementById('th-toggle').onclick = async function() {
